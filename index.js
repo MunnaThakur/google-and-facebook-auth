@@ -2,8 +2,9 @@ const express = require("express");
 const passport = require("passport");
 const googleStrategy = require("passport-google-oauth20");
 const facebookStrategy = require("passport-facebook").Strategy;
+require("dotenv").config();
 
-const PORT = 3000;
+const server = process.env.PORT;
 const app = express();
 
 
@@ -11,8 +12,8 @@ const app = express();
 passport.use(
   new googleStrategy(
     {
-      clientID: "928350860559-pqbjle6e28b57d85l599l3g2vpm8e018.apps.googleusercontent.com",
-      clientSecret: "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",
+      clientID: process.env.GOOGLE_CLIENT,
+      clientSecret: process.env.GOOGLE_SECRET,
       callbackURL: "/auth/google/callback",
     },
     (accessToken, refreshToken, profile, done) => {
@@ -31,47 +32,32 @@ app.get("/auth/google/callback",passport.authenticate("google"));
 
 //facebook oauth
 passport.use(new facebookStrategy({
-  clientID : "540292231465225",
-  clientSecret : "ef613d8acf5f5f04a339a9abb20cfc5a",
+  clientID : process.env.FACEBOOK_CLIENT,
+  clientSecret : process.env.FACEBOOK_SECRET,
   callbackURL : "http://localhost:3000/auth/facebook"
 },
-function(accessToken,refreshToken,profile,cb){
-  User.findOrCreate({facebookId : profile.id}, function(err,user){
-      return cb(err,user);
-  });
+(accessToken,refreshToken,profile,cb)=>{
+  console.log('facebookId', profile.id);
 }
 ));
 
 app.get('/auth/facebook', passport.authenticate('facebook'));
-// app.get('/auth/facebook/secret', passport.authenticate('facebook', {failureRedirect: '/Login'}),
-// function(req,res){res.redirect('/secret')})
-
+app.get('/auth/facebook', passport.authenticate('facebook',{
+  scope: ["profile"]
+}));
 
 
 
 //rendring path
 app.set('view engine', 'ejs');
 
-app.get("/profile/:name", (req,res)=>{
-    res.render('Profile', {name : req.params.name});
-    data = {email : 'moon123@gmail.com', address : 'Salt Lake', skill : ['node js', 'javascript', 'mongodb']}
-})
-
-
 app.get("/login", (req,res)=>{
     res.render('Login');
 })
 
 
-app.get("/", (req,res)=>{
-    res.render('Home');
-})
-
-
-
-
-app.listen(PORT, () => {
-  console.log(`server is listning on port no ${PORT}`);
+app.listen(server, () => {
+  console.log(`server is listning on port no http://localhost:${server}`);
 });
 
 
